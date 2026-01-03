@@ -1,12 +1,18 @@
+/* ======================================================
+   Projektmanagement – Kapitel 2 Quiz Engine
+   - 12 random questions per run
+   - Single-choice
+   - Review
+   - localStorage stats
+   ====================================================== */
+
 (function () {
-  function getQuestions() {
-  return window.QUESTIONS_CH2 || [];
-}
   const RUN_SIZE = 12;
 
   const STATS_KEY = "pmquiz_stats_ch2";
-  const RUN_KEY   = "pmquiz_run_ch2";
+  const RUN_KEY = "pmquiz_run_ch2";
 
+  // --- DOM refs (with safety checks)
   const quizRoot = document.getElementById("quizRoot");
   const progressText = document.getElementById("progressText");
   const scoreText = document.getElementById("scoreText");
@@ -16,12 +22,42 @@
   const reviewBtn = document.getElementById("reviewBtn");
   const statsBox = document.getElementById("statsBox");
 
+  function mustExist(el, name) {
+    if (!el) {
+      // Fail loudly so you see it immediately in Console
+      console.error(`Quiz CH2: Missing element #${name}. Check chapter2.html IDs.`);
+      return false;
+    }
+    return true;
+  }
+
+  // If core container missing, stop (otherwise nothing can render anyway)
+  const coreOk =
+    mustExist(quizRoot, "quizRoot") &&
+    mustExist(progressText, "progressText") &&
+    mustExist(scoreText, "scoreText") &&
+    mustExist(statusText, "statusText");
+
+  if (!coreOk) return;
+
+  // --- Dynamic question access (FIX for your issue)
+  function getQuestions() {
+    const q = window.QUESTIONS_CH2;
+    return Array.isArray(q) ? q : [];
+  }
+
   function defaultStats() {
     return { runs: 0, bestScore: 0, lastScore: 0, totalCorrect: 0, totalQuestions: 0 };
   }
+
   function loadStats() {
-    try { return JSON.parse(localStorage.getItem(STATS_KEY)) || defaultStats(); } catch { return defaultStats(); }
+    try {
+      return JSON.parse(localStorage.getItem(STATS_KEY)) || defaultStats();
+    } catch {
+      return defaultStats();
+    }
   }
+
   function saveStats(s) {
     localStorage.setItem(STATS_KEY, JSON.stringify(s));
   }
@@ -35,34 +71,24 @@
     return a;
   }
 
-  function newRun() {
-    if (getQuestions().length < RUN_SIZE) {
-      alert("Zu wenige Fragen im Katalog.");
-      return;
-    }
-    const picked = shuffle(getQuestions()).slice(0, RUN_SIZE).map(q => ({ id: q.id, picked: null }));
-    const run = { createdAt: Date.now(), finished: false, answers: picked };
-    localStorage.setItem(RUN_KEY, JSON.stringify(run));
-    render();
-  }
-
   function loadRun() {
-    try { return JSON.parse(localStorage.getItem(RUN_KEY)) || null; } catch { return null; }
+    try {
+      return JSON.parse(localStorage.getItem(RUN_KEY)) || null;
+    } catch {
+      return null;
+    }
   }
 
-  function resetRun() {
+  function saveRun(run) {
+    localStorage.setItem(RUN_KEY, JSON.stringify(run));
+  }
+
+  function clearRun() {
     localStorage.removeItem(RUN_KEY);
-    resultBox.classList.add("hidden");
-    reviewBox.classList.add("hidden");
-    reviewBtn.disabled = true;
-    statusText.textContent = "Laufend";
-    scoreText.textContent = "0";
-    progressText.textContent = `0 / ${RUN_SIZE}`;
-    newRun();
   }
 
   function getQuestionById(id) {
-    return QUESTIONS.find(q => q.id === id);
+    return getQuestions().find(q => q.id === id);
   }
 
   function computeProgress(run) {
@@ -71,6 +97,8 @@
   }
 
   function renderStats() {
+    if (!statsBox) return;
+
     const s = loadStats();
     const acc = s.totalQuestions > 0 ? Math.round((s.totalCorrect / s.totalQuestions) * 100) : 0;
 
@@ -86,9 +114,69 @@
     `;
   }
 
+  function showFatal(msg) {
+    quizRoot.innerHTML = `
+      <div class="question">
+        <p class="q-title">⚠️ Quiz kann nicht starten</p>
+        <p class="muted">${msg}</p>
+        <p class="muted">Check: Fragen-Datei geladen? In der Console: <code>window.QUESTIONS_CH2?.length</code></p>
+      </div>
+    `;
+  }
+
+  function newRun() {
+    const QUESTIONS = getQuestions();
+
+    if (QUESTIONS.length < RUN_SIZE) {
+      showFatal(
+        `Zu wenige Fragen im Katalog (gefunden: ${QUESTIONS.length}). 
+         Stelle sicher, dass assets/questions_ch2.js geladen wird und window.QUESTIONS_CH2 ein Array ist.`
+      );
+      return;
+    }
+
+    const picked = shuffle(QUESTIONS)
+      .slice(0, RUN_SIZE)
+      .map(q => ({ id: q.id, picked: null }));
+
+    const run = { createdAt: Date.now(), finished: false, answers: picked };
+    saveRun(run);
+
+    // reset UI bits
+    if (resultBox) resultBox.classList.add("hidden");
+    if (reviewBox) reviewBox.classList.add("hidden");
+    if (reviewBtn) reviewBtn.disabled = true;
+
+    scoreText.textContent = "0";
+    statusText.textContent = "Laufend";
+    progressText.textContent = `0 / ${RUN_SIZE}`;
+
+    render();
+  }
+
+  function resetRun() {
+    clearRun();
+    newRun();
+  }
+
   function render() {
     const run = loadRun();
-    if (!run) { newRun(); return; }
+
+    // If no run, create one
+    if (!run) {
+      newRun();
+      return;
+    }
+
+    // Validate run: do all ids exist in catalog?
+    const missing = run.answers.filter(a => !getQuestionById(a.id)).length;
+    if (missing > 0) {
+      // Catalog changed or old run persisted: nuke it and recreate
+      console.warn("Quiz CH2: Run contains unknown question IDs. Recreating run.");
+      clearRun();
+      newRun();
+      return;
+    }
 
     const { answered, total } = computeProgress(run);
     progressText.textContent = `${answered} / ${total}`;
@@ -103,24 +191,33 @@
       qEl.innerHTML = `
         <p class="q-title">${idx + 1}. ${q.q}</p>
         <div class="options">
-          ${q.options.map((opt, oi) => `
-            <label class="opt">
-              <input type="radio" name="q_${q.id}" value="${oi}" ${a.picked === oi ? "checked" : ""} ${run.finished ? "disabled" : ""}/>
-              <span>${opt}</span>
-            </label>
-          `).join("")}
+          ${q.options
+            .map(
+              (opt, oi) => `
+              <label class="opt">
+                <input type="radio" name="q_${q.id}" value="${oi}"
+                  ${a.picked === oi ? "checked" : ""}
+                  ${run.finished ? "disabled" : ""}/>
+                <span>${opt}</span>
+              </label>`
+            )
+            .join("")}
         </div>
       `;
       quizRoot.appendChild(qEl);
 
-      qEl.querySelectorAll(\`input[name="q_${q.id}"]\`).forEach(inp => {
+      qEl.querySelectorAll(`input[name="q_${q.id}"]`).forEach(inp => {
         inp.addEventListener("change", (e) => {
           const run2 = loadRun();
           if (!run2 || run2.finished) return;
+
           const picked = Number(e.target.value);
           const entry = run2.answers.find(x => x.id === q.id);
+          if (!entry) return;
+
           entry.picked = picked;
-          localStorage.setItem(RUN_KEY, JSON.stringify(run2));
+          saveRun(run2);
+
           const p = computeProgress(run2);
           progressText.textContent = `${p.answered} / ${p.total}`;
         });
@@ -133,10 +230,12 @@
 
   function gradeRun(run) {
     let correct = 0;
+
     const details = run.answers.map(a => {
       const q = getQuestionById(a.id);
       const ok = a.picked === q.answer;
       if (ok) correct++;
+
       return {
         id: q.id,
         q: q.q,
@@ -148,6 +247,7 @@
         ok
       };
     });
+
     return { correct, total: run.answers.length, details };
   }
 
@@ -167,14 +267,15 @@
     const { answered, total } = computeProgress(run);
     if (answered < total) {
       const missing = total - answered;
-      const proceed = confirm(\`Du hast noch ${missing} unbeantwortete Frage(n). Trotzdem abgeben?\`);
+      const proceed = confirm(`Du hast noch ${missing} unbeantwortete Frage(n). Trotzdem abgeben?`);
       if (!proceed) return;
     }
 
     const graded = gradeRun(run);
+
     run.finished = true;
     run.graded = graded;
-    localStorage.setItem(RUN_KEY, JSON.stringify(run));
+    saveRun(run);
 
     const s = loadStats();
     s.runs += 1;
@@ -188,59 +289,65 @@
     statusText.textContent = "Abgeschlossen";
 
     const pct = Math.round((graded.correct / graded.total) * 100);
-    resultBox.classList.remove("hidden");
-    resultBox.innerHTML = `
-      <div class="row space">
-        <div><strong>Ergebnis:</strong> ${graded.correct}/${graded.total} (${pct}%)</div>
-        <div class="tag ${pct >= 75 ? "ok" : "bad"}">${pct >= 75 ? "Go" : "Nachschärfen"}</div>
-      </div>
-      <p class="muted" style="margin-top:8px">
-        Review öffnen, falsche Fragen rausziehen, dann direkt neuer Run.
-      </p>
-    `;
+    if (resultBox) {
+      resultBox.classList.remove("hidden");
+      resultBox.innerHTML = `
+        <div class="row space">
+          <div><strong>Ergebnis:</strong> ${graded.correct}/${graded.total} (${pct}%)</div>
+          <div class="tag ${pct >= 75 ? "ok" : "bad"}">${pct >= 75 ? "Go" : "Nachschärfen"}</div>
+        </div>
+        <p class="muted" style="margin-top:8px">
+          Review öffnen, falsche Fragen rausziehen, dann direkt neuer Run.
+        </p>
+      `;
+    }
 
-    reviewBtn.disabled = false;
+    if (reviewBtn) reviewBtn.disabled = false;
     render();
   }
 
   function showReview() {
     const run = loadRun();
-    if (!run || !run.finished || !run.graded) return;
+    if (!run || !run.finished || !run.graded || !reviewBox) return;
 
     reviewBox.classList.remove("hidden");
-    const rows = run.graded.details.map((d, i) => `
-      <div class="question">
-        <div class="row space">
-          <p class="q-title" style="margin:0">${i + 1}. ${escapeHtml(d.q)}</p>
-          <span class="tag ${d.ok ? "ok" : "bad"}">${d.ok ? "Richtig" : "Falsch"}</span>
+    const rows = run.graded.details
+      .map(
+        (d, i) => `
+        <div class="question">
+          <div class="row space">
+            <p class="q-title" style="margin:0">${i + 1}. ${escapeHtml(d.q)}</p>
+            <span class="tag ${d.ok ? "ok" : "bad"}">${d.ok ? "Richtig" : "Falsch"}</span>
+          </div>
+          <div class="divider"></div>
+          <p><span class="muted">Deine Antwort:</span> ${escapeHtml(d.pickedText)}</p>
+          <p><span class="muted">Richtige Antwort:</span> ${escapeHtml(d.answerText)}</p>
+          ${d.explanation ? `<p class="muted" style="margin-top:8px">${escapeHtml(d.explanation)}</p>` : ""}
         </div>
-        <div class="divider"></div>
-        <p><span class="muted">Deine Antwort:</span> ${escapeHtml(d.pickedText)}</p>
-        <p><span class="muted">Richtige Antwort:</span> ${escapeHtml(d.answerText)}</p>
-        ${d.explanation ? `<p class="muted" style="margin-top:8px">${escapeHtml(d.explanation)}</p>` : ""}
-      </div>
-    `).join("");
+      `
+      )
+      .join("");
 
     reviewBox.innerHTML = `<h3 style="margin:0 0 10px 0">Review</h3>${rows}`;
   }
 
+  // --- UI wiring
   document.getElementById("newRun")?.addEventListener("click", () => {
     newRun();
-    resultBox.classList.add("hidden");
-    reviewBox.classList.add("hidden");
-    reviewBtn.disabled = true;
-    scoreText.textContent = "0";
-    statusText.textContent = "Laufend";
   });
 
   document.getElementById("submitBtn")?.addEventListener("click", submit);
   document.getElementById("reviewBtn")?.addEventListener("click", showReview);
   document.getElementById("resetRunBtn")?.addEventListener("click", resetRun);
 
+  // --- init stats storage
   if (!localStorage.getItem(STATS_KEY)) saveStats(defaultStats());
+
+  // --- init run: if none, create one; then render
   if (!loadRun()) newRun();
   render();
 
+  // Restore score if already finished
   const r = loadRun();
-  if (r?.finished?.graded) scoreText.textContent = `${r.graded.correct}/12`;
+  if (r?.finished && r?.graded) scoreText.textContent = `${r.graded.correct}/12`;
 })();
