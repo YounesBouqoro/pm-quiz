@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kapitel 2 Quiz – Projektmanagement</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+<header class="container header">
+  <div>
+    <h1>Kapitel 2 – Traditionelles, phasenorientiertes PM</h1>
+    <p class="muted">12 zufällige Fragen aus 100 · Single-Choice · mit Review</p>
+  </div>
+  <div class="row">
+    <a class="btn btn-secondary" href="index.html">← Zurück</a>
+    <button class="btn" id="newRun">Neuer Run (12 Fragen)</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="row space">
+      <div>
+        <div class="kpi">
+          <span class="muted">Fortschritt</span>
+          <strong id="progressText">0 / 12</strong>
+        </div>
+        <div class="kpi">
+          <span class="muted">Score</span>
+          <strong id="scoreText">0</strong>
+        </div>
+      </div>
+      <div class="kpi">
+        <span class="muted">Status</span>
+        <strong id="statusText">Laufend</strong>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div id="quizRoot"></div>
+    <div class="divider"></div>
+
+    <div class="row">
+      <button class="btn" id="submitBtn">Abgeben</button>
+      <button class="btn btn-secondary" id="reviewBtn" disabled>Review anzeigen</button>
+      <button class="btn btn-secondary" id="resetRunBtn">Run zurücksetzen</button>
+    </div>
+
+    <div id="resultBox" class="result hidden"></div>
+    <div id="reviewBox" class="review hidden"></div>
+  </section>
+
+  <section class="card">
+    <h2>Kapitel 2 KPI</h2>
+    <p class="muted">Gespeichert im Browser (localStorage).</p>
+    <div class="stats" id="statsBox"></div>
+  </section>
+</main>
+
+<script defer src="./assets/questions_ch2.js"></script>
+<script defer src="./assets/quiz_ch2.js"></script>
+</body>
+</html>
