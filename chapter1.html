@@ -1,64 +1,126 @@
 <!doctype html>
 <html lang="de">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Kapitel 1 Quiz – Projektmanagement</title>
-<link rel="stylesheet" href="./assets/style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kapitel 1 Quiz – Projektmanagement</title>
+  <link rel="stylesheet" href="./assets/style.css" />
 </head>
 <body>
+
 <header class="container header">
-    <div>
-        <h1>Kapitel 1 – Quiz</h1>
-        <p class="muted">12 zufällige Fragen aus 100 · Single-Choice · mit Review</p>
-    </div>
-    <div class="row">
-        <a class="btn btn-secondary" href="index.html">← Zurück</a>
-        <button class="btn" id="newRun">Neuer Run (12 Fragen)</button>
-    </div>
+  <div>
+    <h1>Kapitel 1 – Grundlagen Quiz</h1>
+    <p class="muted">
+      Fokus: Begriffe sauber · Abgrenzungen sicher · erste Transferfragen.
+    </p>
+  </div>
+
+  <div class="row">
+    <a class="btn btn-secondary" href="index.html">← Zurück</a>
+    <button class="btn" id="newRun">Neuer Run (12 Fragen)</button>
+  </div>
 </header>
 
 <main class="container">
-    <section class="card">
-        <div class="row space">
-            <div>
-                <div class="kpi">
-                    <span class="muted">Fortschritt</span>
-                    <strong id="progressText">0 / 12</strong>
-                </div>
-                <div class="kpi">
-                    <span class="muted">Score</span>
-                    <strong id="scoreText">0</strong>
-                </div>
-            </div>
-            <div class="kpi">
-                <span class="muted">Status</span>
-                <strong id="statusText">Laufend</strong>
-            </div>
+
+  <!-- Mode / Strategy Banner -->
+  <section class="card">
+    <div class="row space">
+      <div>
+        <h2 style="margin:0 0 6px 0">Modus & Lernstrategie</h2>
+        <p class="muted" style="margin:0">
+          Normal = gemischt · Klausurmodus = Transfer/Rechnen priorisiert (kommt als nächster Tech-Step).
+        </p>
+      </div>
+
+      <div class="row">
+        <span class="tag ok" id="modeBadge">Normal</span>
+        <a class="btn btn-secondary" id="modeToggleLink" href="chapter1.html?mode=exam">Klausurmodus</a>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <span class="tag">Definitionen</span>
+      <span class="tag">Vergleich</span>
+      <span class="tag">Transfer</span>
+      <span class="tag">Rechnen</span>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="card">
+    <div class="row space">
+      <div class="row" style="gap:12px">
+        <div class="kpi">
+          <span class="muted">Fortschritt</span>
+          <strong id="progressText">0 / 12</strong>
         </div>
-
-        <div class="divider"></div>
-
-        <div id="quizRoot"></div>
-
-        <div class="divider"></div>
-
-        <div class="row">
-            <button class="btn" id="submitBtn">Abgeben</button>
-            <button class="btn btn-secondary" id="reviewBtn" disabled>Review anzeigen</button>
-            <button class="btn btn-secondary" id="resetRunBtn">Run zurücksetzen</button>
+        <div class="kpi">
+          <span class="muted">Score</span>
+          <strong id="scoreText">0</strong>
         </div>
+      </div>
 
-        <div id="resultBox" class="result hidden"></div>
-        <div id="reviewBox" class="review hidden"></div>
-    </section>
+      <div class="kpi">
+        <span class="muted">Status</span>
+        <strong id="statusText">Laufend</strong>
+      </div>
+    </div>
 
-    <section class="card">
-        <h2>Kapitel 1 KPI</h2>
-        <p class="muted">Gespeichert im Browser (localStorage).</p>
-        <div class="stats" id="statsBox"></div>
-    </section>
+    <div class="divider"></div>
+
+    <div id="quizRoot"></div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button class="btn" id="submitBtn">Abgeben</button>
+      <button class="btn btn-secondary" id="reviewBtn" disabled>Review anzeigen</button>
+      <button class="btn btn-secondary" id="resetRunBtn">Run zurücksetzen</button>
+    </div>
+
+    <div id="resultBox" class="result hidden"></div>
+    <div id="reviewBox" class="review hidden"></div>
+  </section>
+
+  <!-- KPI -->
+  <section class="card">
+    <div class="row space">
+      <div>
+        <h2 style="margin:0 0 6px 0">Kapitel 1 KPI</h2>
+        <p class="muted" style="margin:0">Gespeichert im Browser (localStorage).</p>
+      </div>
+      <span class="tag" id="kpiModeHint">Modus: Normal</span>
+    </div>
+
+    <div class="divider"></div>
+    <div class="stats" id="statsBox"></div>
+  </section>
+
 </main>
+
+<script>
+  // UI-only: Mode anzeigen (Quiz-Logik kommt im nächsten Schritt in assets/quiz.js)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const isExam = (params.get("mode") || "").toLowerCase() === "exam";
+
+    const badge = document.getElementById("modeBadge");
+    const toggle = document.getElementById("modeToggleLink");
+    const hint = document.getElementById("kpiModeHint");
+
+    if (badge) badge.textContent = isExam ? "Klausurmodus" : "Normal";
+    if (hint) hint.textContent = `Modus: ${isExam ? "Klausurmodus" : "Normal"}`;
+
+    if (toggle) {
+      toggle.textContent = isExam ? "Normalmodus" : "Klausurmodus";
+      toggle.href = isExam ? "chapter1.html" : "chapter1.html?mode=exam";
+    }
+  })();
+</script>
 
 <script defer src="./assets/questions_ch1.js"></script>
 <script defer src="./assets/quiz.js"></script>
