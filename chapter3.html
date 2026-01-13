@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kapitel 3 Quiz – Projektmanagement</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+
+<header class="container header">
+  <div>
+    <h1>Kapitel 3 – Projektorganisation</h1>
+    <p class="muted">
+      Fokus: Rollen (PL, Auftraggeber, Lenkungsausschuss, PMO) · Organisationsformen (Stab/Matrix/Rein) · Transfer.
+    </p>
+  </div>
+
+  <div class="row">
+    <a class="btn btn-secondary" href="index.html">← Zurück</a>
+    <button class="btn" id="newRun">Neuer Run (12 Fragen)</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Mode / Strategy Banner -->
+  <section class="card">
+    <div class="row space">
+      <div>
+        <h2 style="margin:0 0 6px 0">Modus & Klausurstrategie</h2>
+        <p class="muted" style="margin:0">
+          Normal = gemischt · Klausurmodus = Transfer priorisiert (über Quiz-Engine).
+        </p>
+      </div>
+
+      <div class="row">
+        <span class="tag ok" id="modeBadge">Normal</span>
+        <a class="btn btn-secondary" id="modeToggleLink" href="chapter3.html?mode=exam">Klausurmodus</a>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <span class="tag">Projektorganisation</span>
+      <span class="tag">Rollen & Verantwortlichkeiten</span>
+      <span class="tag">Stab / Matrix / Reine Projektorga</span>
+      <span class="tag">Governance & Eskalation</span>
+      <span class="tag">Transfer</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Transfer-Leitfrage -->
+    <div class="question" style="margin:0">
+      <p class="q-title" style="margin:0 0 8px 0">Transfer-Leitfrage (Klausurtyp)</p>
+      <p class="muted" style="margin:0">
+        „Abteilungsübergreifend, knappe Ressourcen, hoher Zeitdruck: Welche Projektorganisationsform passt – und wie
+        begründest du die Wahl inkl. Nebenwirkungen?“
+      </p>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="card">
+    <div class="row space">
+      <div class="row" style="gap:12px">
+        <div class="kpi">
+          <span class="muted">Fortschritt</span>
+          <strong id="progressText">0 / 12</strong>
+        </div>
+        <div class="kpi">
+          <span class="muted">Score</span>
+          <strong id="scoreText">0</strong>
+        </div>
+      </div>
+
+      <div class="kpi">
+        <span class="muted">Status</span>
+        <strong id="statusText">Laufend</strong>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="quizRoot"></div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button class="btn" id="submitBtn">Abgeben</button>
+      <button class="btn btn-secondary" id="reviewBtn" disabled>Review anzeigen</button>
+      <button class="btn btn-secondary" id="resetRunBtn">Run zurücksetzen</button>
+    </div>
+
+    <div id="resultBox" class="result hidden"></div>
+    <div id="reviewBox" class="review hidden"></div>
+  </section>
+
+  <!-- KPI -->
+  <section class="card">
+    <div class="row space">
+      <div>
+        <h2 style="margin:0 0 6px 0">Kapitel 3 KPI</h2>
+        <p class="muted" style="margin:0">Gespeichert im Browser (localStorage).</p>
+      </div>
+      <span class="tag" id="kpiModeHint">Modus: Normal</span>
+    </div>
+
+    <div class="divider"></div>
+    <div class="stats" id="statsBox"></div>
+  </section>
+
+</main>
+
+<script>
+  // UI-only: Mode anzeigen (Logik kommt über quiz_ch3.js)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const isExam = (params.get("mode") || "").toLowerCase() === "exam";
+
+    const badge = document.getElementById("modeBadge");
+    const toggle = document.getElementById("modeToggleLink");
+    const hint = document.getElementById("kpiModeHint");
+
+    if (badge) badge.textContent = isExam ? "Klausurmodus" : "Normal";
+    if (hint) hint.textContent = `Modus: ${isExam ? "Klausurmodus" : "Normal"}`;
+
+    if (toggle) {
+      toggle.textContent = isExam ? "Normalmodus" : "Klausurmodus";
+      toggle.href = isExam ? "chapter3.html" : "chapter3.html?mode=exam";
+    }
+  })();
+</script>
+
+<script defer src="./assets/questions_ch3.js"></script>
+<script defer src="./assets/quiz_ch3.js"></script>
+</body>
+</html>
