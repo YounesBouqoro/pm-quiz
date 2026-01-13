@@ -7,11 +7,15 @@
   <link rel="stylesheet" href="./assets/style.css" />
 </head>
 <body>
+
 <header class="container header">
   <div>
-    <h1>Kapitel 2 – Traditionelles, phasenorientiertes PM</h1>
-    <p class="muted">12 zufällige Fragen aus 100 · Single-Choice · mit Review</p>
+    <h1>Kapitel 2 – Traditionelles PM</h1>
+    <p class="muted">
+      Fokus: Phasenmodell · Ablauf vs. Aufbau · Wasserfall vs. Spiral · Rollen · Orgaformen (Transfer!).
+    </p>
   </div>
+
   <div class="row">
     <a class="btn btn-secondary" href="index.html">← Zurück</a>
     <button class="btn" id="newRun">Neuer Run (12 Fragen)</button>
@@ -19,9 +23,49 @@
 </header>
 
 <main class="container">
+
+  <!-- Mode / Strategy Banner -->
   <section class="card">
     <div class="row space">
       <div>
+        <h2 style="margin:0 0 6px 0">Modus & Klausurstrategie</h2>
+        <p class="muted" style="margin:0">
+          Normal = gemischt · Klausurmodus = Transfer/Rechnen priorisiert (über Quiz-Engine).
+        </p>
+      </div>
+
+      <div class="row">
+        <span class="tag ok" id="modeBadge">Normal</span>
+        <a class="btn btn-secondary" id="modeToggleLink" href="chapter2.html?mode=exam">Klausurmodus</a>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <span class="tag">Phasenmodell</span>
+      <span class="tag">Ablauf vs. Aufbau</span>
+      <span class="tag">Wasserfall vs. Spiral</span>
+      <span class="tag">Rollen</span>
+      <span class="tag">Stab / Matrix / Reine Projektorga</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Transfer-Leitfrage -->
+    <div class="question" style="margin:0">
+      <p class="q-title" style="margin:0 0 8px 0">Transfer-Leitfrage (Klausurtyp)</p>
+      <p class="muted" style="margin:0">
+        „Ein Projekt ist zeitkritisch, hat klare Anforderungen, aber knappe Ressourcen.
+        Welche Organisationsform ist geeignet – und warum?“
+      </p>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="card">
+    <div class="row space">
+      <div class="row" style="gap:12px">
         <div class="kpi">
           <span class="muted">Fortschritt</span>
           <strong id="progressText">0 / 12</strong>
@@ -31,6 +75,7 @@
           <strong id="scoreText">0</strong>
         </div>
       </div>
+
       <div class="kpi">
         <span class="muted">Status</span>
         <strong id="statusText">Laufend</strong>
@@ -38,7 +83,9 @@
     </div>
 
     <div class="divider"></div>
+
     <div id="quizRoot"></div>
+
     <div class="divider"></div>
 
     <div class="row">
@@ -51,12 +98,41 @@
     <div id="reviewBox" class="review hidden"></div>
   </section>
 
+  <!-- KPI -->
   <section class="card">
-    <h2>Kapitel 2 KPI</h2>
-    <p class="muted">Gespeichert im Browser (localStorage).</p>
+    <div class="row space">
+      <div>
+        <h2 style="margin:0 0 6px 0">Kapitel 2 KPI</h2>
+        <p class="muted" style="margin:0">Gespeichert im Browser (localStorage).</p>
+      </div>
+      <span class="tag" id="kpiModeHint">Modus: Normal</span>
+    </div>
+
+    <div class="divider"></div>
     <div class="stats" id="statsBox"></div>
   </section>
+
 </main>
+
+<script>
+  // UI-only: Mode anzeigen (Logik kommt über quiz_ch2.js)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const isExam = (params.get("mode") || "").toLowerCase() === "exam";
+
+    const badge = document.getElementById("modeBadge");
+    const toggle = document.getElementById("modeToggleLink");
+    const hint = document.getElementById("kpiModeHint");
+
+    if (badge) badge.textContent = isExam ? "Klausurmodus" : "Normal";
+    if (hint) hint.textContent = `Modus: ${isExam ? "Klausurmodus" : "Normal"}`;
+
+    if (toggle) {
+      toggle.textContent = isExam ? "Normalmodus" : "Klausurmodus";
+      toggle.href = isExam ? "chapter2.html" : "chapter2.html?mode=exam";
+    }
+  })();
+</script>
 
 <script defer src="./assets/questions_ch2.js"></script>
 <script defer src="./assets/quiz_ch2.js"></script>
